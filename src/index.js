@@ -1,6 +1,7 @@
 const {$} = require('./web-libs');
 
 const {TestRunner, TAP13Listener, CoverageGenerator} = require('../../whisker-test');
+const {resetRecords, getRecords} = require('../../whisker-test/src/util/timer');
 const Runtime = require('scratch-vm/src/engine/runtime');
 const Thread = require('scratch-vm/src/engine/thread');
 
@@ -46,12 +47,40 @@ const _runTestsWithCoverage = async function (vm, project, tests) {
     ].join('\n'));
 };
 
+const _recordTime = async function (vm, project, tests, projectName) {
+    Whisker.outputLog.println(`# project: ${projectName}`);
+    resetRecords();
+
+    await Whisker.scratch.vm.loadProject(project);
+    CoverageGenerator.prepareThread(Thread);
+    CoverageGenerator.prepare(vm);
+
+    const summary = await Whisker.testRunner.runTests(vm, project, tests);
+    const coverage = CoverageGenerator.getCoverage();
+
+    CoverageGenerator.restoreThread(Thread);
+
+    const formattedSummary = TAP13Listener.formatSummary(summary);
+    const formattedCoverage = TAP13Listener.formatCoverage(coverage);
+
+    const summaryString = TAP13Listener.extraToYAML({summary: formattedSummary});
+    const coverageString = TAP13Listener.extraToYAML({coverage: formattedCoverage});
+
+    Whisker.outputRun.println([
+        summaryString,
+        coverageString
+    ].join('\n'));
+
+    Whisker.outputLog.println(JSON.stringify(getRecords()));
+    Whisker.outputLog.println();
+};
+
 const runTests = async function (tests) {
     Whisker.scratch.stop();
     const project = await Whisker.projectFileSelect.loadAsArrayBuffer();
     Whisker.outputRun.clear();
     Whisker.outputLog.clear();
-    await _runTestsWithCoverage(Whisker.scratch.vm, project, tests);
+    await _recordTime(Whisker.scratch.vm, project, tests, Whisker.projectFileSelect.getName());
 };
 
 const runAllTests = async function () {
@@ -61,7 +90,7 @@ const runAllTests = async function () {
     for (let i = 0; i < Whisker.projectFileSelect.length(); i++) {
         const project = await Whisker.projectFileSelect.loadAsArrayBuffer(i);
         Whisker.outputRun.println(`# project: ${Whisker.projectFileSelect.getName(i)}`);
-        await _runTestsWithCoverage(Whisker.scratch.vm, project, Whisker.tests);
+        await _recordTime(Whisker.scratch.vm, project, Whisker.tests, Whisker.projectFileSelect.getName(i));
         Whisker.outputRun.println();
     }
 };

@@ -80,7 +80,7 @@ const runTests = async function (tests) {
     const project = await Whisker.projectFileSelect.loadAsArrayBuffer();
     Whisker.outputRun.clear();
     Whisker.outputLog.clear();
-    await _recordTime(Whisker.scratch.vm, project, tests, Whisker.projectFileSelect.getName());
+    await _runTestsWithCoverage(Whisker.scratch.vm, project, tests);
 };
 
 const runAllTests = async function () {
@@ -90,8 +90,10 @@ const runAllTests = async function () {
     for (let i = 0; i < Whisker.projectFileSelect.length(); i++) {
         const project = await Whisker.projectFileSelect.loadAsArrayBuffer(i);
         Whisker.outputRun.println(`# project: ${Whisker.projectFileSelect.getName(i)}`);
-        await _recordTime(Whisker.scratch.vm, project, Whisker.tests, Whisker.projectFileSelect.getName(i));
+        Whisker.outputLog.println(`# project: ${Whisker.projectFileSelect.getName(i)}`);
+        await _runTestsWithCoverage(Whisker.scratch.vm, project, Whisker.tests);
         Whisker.outputRun.println();
+        Whisker.outputLog.println();
     }
 };
 

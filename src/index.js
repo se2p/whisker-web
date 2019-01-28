@@ -47,8 +47,7 @@ const _runTestsWithCoverage = async function (vm, project, tests) {
     ].join('\n'));
 };
 
-const _recordTime = async function (vm, project, tests, projectName) {
-    Whisker.outputLog.println(`# project: ${projectName}`);
+const _recordTime = async function (vm, project, tests) {
     resetRecords();
 
     await Whisker.scratch.vm.loadProject(project);
@@ -72,7 +71,6 @@ const _recordTime = async function (vm, project, tests, projectName) {
     ].join('\n'));
 
     Whisker.outputLog.println(JSON.stringify(getRecords()));
-    Whisker.outputLog.println();
 };
 
 const runTests = async function (tests) {
@@ -81,6 +79,7 @@ const runTests = async function (tests) {
     Whisker.outputRun.clear();
     Whisker.outputLog.clear();
     await _runTestsWithCoverage(Whisker.scratch.vm, project, tests);
+    await _recordTime(Whisker.scratch.vm, project, Whisker.tests);
 };
 
 const runAllTests = async function () {
@@ -91,7 +90,7 @@ const runAllTests = async function () {
         const project = await Whisker.projectFileSelect.loadAsArrayBuffer(i);
         Whisker.outputRun.println(`# project: ${Whisker.projectFileSelect.getName(i)}`);
         Whisker.outputLog.println(`# project: ${Whisker.projectFileSelect.getName(i)}`);
-        await _runTestsWithCoverage(Whisker.scratch.vm, project, Whisker.tests);
+        await _recordTime(Whisker.scratch.vm, project, Whisker.tests);
         Whisker.outputRun.println();
         Whisker.outputLog.println();
     }

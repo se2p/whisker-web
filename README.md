@@ -1,3 +1,7 @@
+## Important note
+
+This repository is now obsolete, as Whisker is now hosted in a mono-repository at https://github.com/se2p/whisker-main
+
 ## Building Whisker Web
 
 ```bash
